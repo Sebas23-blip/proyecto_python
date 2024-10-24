@@ -1,0 +1,127 @@
+<html>
+<head>
+<title>CircuitoRLC_MASF.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #2aacb8;}
+.s5 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+CircuitoRLC_MASF.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">numpy </span><span class="s0">as </span><span class="s1">np</span>
+<span class="s0">import </span><span class="s1">matplotlib</span><span class="s2">.</span><span class="s1">pyplot </span><span class="s0">as </span><span class="s1">plt</span>
+<span class="s0">from </span><span class="s1">scipy</span><span class="s2">.</span><span class="s1">integrate </span><span class="s0">import </span><span class="s1">odeint</span>
+<span class="s0">import </span><span class="s1">tkinter </span><span class="s0">as </span><span class="s1">tk</span>
+<span class="s0">from </span><span class="s1">tkinter </span><span class="s0">import </span><span class="s1">ttk</span>
+
+<span class="s3"># Definir la función diferencial para el sistema RLC forzado</span>
+<span class="s0">def </span><span class="s1">rlc_forzado</span><span class="s2">(</span><span class="s1">y</span><span class="s2">, </span><span class="s1">t</span><span class="s2">, </span><span class="s1">R</span><span class="s2">, </span><span class="s1">L</span><span class="s2">, </span><span class="s1">C</span><span class="s2">, </span><span class="s1">V0</span><span class="s2">, </span><span class="s1">omega</span><span class="s2">):</span>
+    <span class="s1">i</span><span class="s2">, </span><span class="s1">v </span><span class="s2">= </span><span class="s1">y</span>
+    <span class="s1">di_dt </span><span class="s2">= </span><span class="s1">v</span>
+    <span class="s1">dv_dt </span><span class="s2">= -(</span><span class="s1">R</span><span class="s2">/</span><span class="s1">L</span><span class="s2">)*</span><span class="s1">v </span><span class="s2">- (</span><span class="s4">1</span><span class="s2">/(</span><span class="s1">L</span><span class="s2">*</span><span class="s1">C</span><span class="s2">))*</span><span class="s1">i </span><span class="s2">+ (</span><span class="s1">V0</span><span class="s2">/</span><span class="s1">L</span><span class="s2">)*</span><span class="s1">np</span><span class="s2">.</span><span class="s1">cos</span><span class="s2">(</span><span class="s1">omega</span><span class="s2">*</span><span class="s1">t</span><span class="s2">)</span>
+    <span class="s0">return </span><span class="s2">[</span><span class="s1">di_dt</span><span class="s2">, </span><span class="s1">dv_dt</span><span class="s2">]</span>
+
+<span class="s3"># Función para realizar la simulación y graficar los resultados</span>
+<span class="s0">def </span><span class="s1">simulate_forzado</span><span class="s2">():</span>
+    <span class="s0">try</span><span class="s2">:</span>
+        <span class="s3"># Recoger los valores introducidos por el usuario</span>
+        <span class="s1">R </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">entry_R</span><span class="s2">.</span><span class="s1">get</span><span class="s2">())</span>
+        <span class="s1">L </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">entry_L</span><span class="s2">.</span><span class="s1">get</span><span class="s2">())</span>
+        <span class="s1">C </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">entry_C</span><span class="s2">.</span><span class="s1">get</span><span class="s2">())</span>
+        <span class="s1">V0 </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">entry_V0</span><span class="s2">.</span><span class="s1">get</span><span class="s2">())</span>
+        <span class="s1">omega </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">entry_omega</span><span class="s2">.</span><span class="s1">get</span><span class="s2">())</span>
+        <span class="s1">I0 </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">entry_I0</span><span class="s2">.</span><span class="s1">get</span><span class="s2">())</span>
+        <span class="s1">V0_init </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">entry_V0_init</span><span class="s2">.</span><span class="s1">get</span><span class="s2">())</span>
+        <span class="s1">t_max </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">entry_tmax</span><span class="s2">.</span><span class="s1">get</span><span class="s2">())</span>
+    <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+        <span class="s1">result_label</span><span class="s2">.</span><span class="s1">config</span><span class="s2">(</span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;Por favor, introduce valores numéricos válidos.&quot;</span><span class="s2">)</span>
+        <span class="s0">return</span>
+
+    <span class="s1">t </span><span class="s2">= </span><span class="s1">np</span><span class="s2">.</span><span class="s1">linspace</span><span class="s2">(</span><span class="s4">0</span><span class="s2">, </span><span class="s1">t_max</span><span class="s2">, </span><span class="s4">1000</span><span class="s2">)  </span><span class="s3"># Tiempo desde 0 hasta t_max</span>
+    <span class="s1">y0 </span><span class="s2">= [</span><span class="s1">I0</span><span class="s2">, </span><span class="s1">V0_init</span><span class="s2">]  </span><span class="s3"># Condiciones iniciales: corriente y voltaje</span>
+
+    <span class="s3"># Resolver las ecuaciones diferenciales</span>
+    <span class="s1">sol </span><span class="s2">= </span><span class="s1">odeint</span><span class="s2">(</span><span class="s1">rlc_forzado</span><span class="s2">, </span><span class="s1">y0</span><span class="s2">, </span><span class="s1">t</span><span class="s2">, </span><span class="s1">args</span><span class="s2">=(</span><span class="s1">R</span><span class="s2">, </span><span class="s1">L</span><span class="s2">, </span><span class="s1">C</span><span class="s2">, </span><span class="s1">V0</span><span class="s2">, </span><span class="s1">omega</span><span class="s2">))</span>
+    <span class="s1">corriente </span><span class="s2">= </span><span class="s1">sol</span><span class="s2">[:, </span><span class="s4">0</span><span class="s2">]</span>
+    <span class="s1">voltaje </span><span class="s2">= </span><span class="s1">sol</span><span class="s2">[:, </span><span class="s4">1</span><span class="s2">]</span>
+
+    <span class="s3"># Crear las gráficas</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">figure</span><span class="s2">(</span><span class="s1">figsize</span><span class="s2">=(</span><span class="s4">10</span><span class="s2">, </span><span class="s4">6</span><span class="s2">))</span>
+
+    <span class="s3"># Gráfica de corriente</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">subplot</span><span class="s2">(</span><span class="s4">2</span><span class="s2">, </span><span class="s4">1</span><span class="s2">, </span><span class="s4">1</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">plot</span><span class="s2">(</span><span class="s1">t</span><span class="s2">, </span><span class="s1">corriente</span><span class="s2">, </span><span class="s1">label</span><span class="s2">=</span><span class="s5">&quot;Corriente (I)&quot;</span><span class="s2">, </span><span class="s1">color</span><span class="s2">=</span><span class="s5">&quot;blue&quot;</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">title</span><span class="s2">(</span><span class="s5">'Simulación de un circuito RLC Amortiguado Forzado'</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">ylabel</span><span class="s2">(</span><span class="s5">&quot;Corriente (A)&quot;</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s0">True</span><span class="s2">)</span>
+
+    <span class="s3"># Gráfica de voltaje</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">subplot</span><span class="s2">(</span><span class="s4">2</span><span class="s2">, </span><span class="s4">1</span><span class="s2">, </span><span class="s4">2</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">plot</span><span class="s2">(</span><span class="s1">t</span><span class="s2">, </span><span class="s1">voltaje</span><span class="s2">, </span><span class="s1">label</span><span class="s2">=</span><span class="s5">&quot;Voltaje (V)&quot;</span><span class="s2">, </span><span class="s1">color</span><span class="s2">=</span><span class="s5">&quot;red&quot;</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">xlabel</span><span class="s2">(</span><span class="s5">&quot;Tiempo (s)&quot;</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">ylabel</span><span class="s2">(</span><span class="s5">&quot;Voltaje (V)&quot;</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s0">True</span><span class="s2">)</span>
+
+    <span class="s3"># Mostrar las gráficas</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">tight_layout</span><span class="s2">()</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">show</span><span class="s2">()</span>
+
+<span class="s3"># Configuración de la ventana principal</span>
+<span class="s1">root </span><span class="s2">= </span><span class="s1">tk</span><span class="s2">.</span><span class="s1">Tk</span><span class="s2">()</span>
+<span class="s1">root</span><span class="s2">.</span><span class="s1">title</span><span class="s2">(</span><span class="s5">&quot;Simulación de un circuito RLC Amortiguado Forzado&quot;</span><span class="s2">)</span>
+
+<span class="s3"># Etiquetas y entradas para los valores de R, L, C, V0, omega, I0, V0_init y t_max</span>
+<span class="s1">ttk</span><span class="s2">.</span><span class="s1">Label</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;Resistencia (R en ohmios):&quot;</span><span class="s2">).</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+<span class="s1">entry_R </span><span class="s2">= </span><span class="s1">ttk</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">(</span><span class="s1">root</span><span class="s2">)</span>
+<span class="s1">entry_R</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">1</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+
+<span class="s1">ttk</span><span class="s2">.</span><span class="s1">Label</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;Inductancia (L en henrios):&quot;</span><span class="s2">).</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">1</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+<span class="s1">entry_L </span><span class="s2">= </span><span class="s1">ttk</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">(</span><span class="s1">root</span><span class="s2">)</span>
+<span class="s1">entry_L</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">1</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">1</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+
+<span class="s1">ttk</span><span class="s2">.</span><span class="s1">Label</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;Capacitancia (C en faradios):&quot;</span><span class="s2">).</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">2</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+<span class="s1">entry_C </span><span class="s2">= </span><span class="s1">ttk</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">(</span><span class="s1">root</span><span class="s2">)</span>
+<span class="s1">entry_C</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">1</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">2</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+
+<span class="s1">ttk</span><span class="s2">.</span><span class="s1">Label</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;Voltaje forzado (V0 en V):&quot;</span><span class="s2">).</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">3</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+<span class="s1">entry_V0 </span><span class="s2">= </span><span class="s1">ttk</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">(</span><span class="s1">root</span><span class="s2">)</span>
+<span class="s1">entry_V0</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">1</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">3</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+
+<span class="s1">ttk</span><span class="s2">.</span><span class="s1">Label</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;Frecuencia angular (omega en rad/s):&quot;</span><span class="s2">).</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">4</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+<span class="s1">entry_omega </span><span class="s2">= </span><span class="s1">ttk</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">(</span><span class="s1">root</span><span class="s2">)</span>
+<span class="s1">entry_omega</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">1</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">4</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+
+<span class="s1">ttk</span><span class="s2">.</span><span class="s1">Label</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;Corriente inicial (I0 en A):&quot;</span><span class="s2">).</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">5</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+<span class="s1">entry_I0 </span><span class="s2">= </span><span class="s1">ttk</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">(</span><span class="s1">root</span><span class="s2">)</span>
+<span class="s1">entry_I0</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">1</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">5</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+
+<span class="s1">ttk</span><span class="s2">.</span><span class="s1">Label</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;Voltaje inicial (V0 en V):&quot;</span><span class="s2">).</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">6</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+<span class="s1">entry_V0_init </span><span class="s2">= </span><span class="s1">ttk</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">(</span><span class="s1">root</span><span class="s2">)</span>
+<span class="s1">entry_V0_init</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">1</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">6</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+
+<span class="s1">ttk</span><span class="s2">.</span><span class="s1">Label</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;Tiempo máximo (t_max en s):&quot;</span><span class="s2">).</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">7</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+<span class="s1">entry_tmax </span><span class="s2">= </span><span class="s1">ttk</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">(</span><span class="s1">root</span><span class="s2">)</span>
+<span class="s1">entry_tmax</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">1</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">7</span><span class="s2">, </span><span class="s1">padx</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">5</span><span class="s2">)</span>
+
+<span class="s3"># Botón para ejecutar la simulación</span>
+<span class="s1">btn_simulate </span><span class="s2">= </span><span class="s1">ttk</span><span class="s2">.</span><span class="s1">Button</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;Simular&quot;</span><span class="s2">, </span><span class="s1">command</span><span class="s2">=</span><span class="s1">simulate_forzado</span><span class="s2">)</span>
+<span class="s1">btn_simulate</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">8</span><span class="s2">, </span><span class="s1">columnspan</span><span class="s2">=</span><span class="s4">2</span><span class="s2">, </span><span class="s1">pady</span><span class="s2">=</span><span class="s4">10</span><span class="s2">)</span>
+
+<span class="s3"># Etiqueta para mostrar mensajes</span>
+<span class="s1">result_label </span><span class="s2">= </span><span class="s1">ttk</span><span class="s2">.</span><span class="s1">Label</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;&quot;</span><span class="s2">)</span>
+<span class="s1">result_label</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">column</span><span class="s2">=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">row</span><span class="s2">=</span><span class="s4">9</span><span class="s2">, </span><span class="s1">columnspan</span><span class="s2">=</span><span class="s4">2</span><span class="s2">)</span>
+
+<span class="s3"># Iniciar el bucle de la interfaz gráfica</span>
+<span class="s1">root</span><span class="s2">.</span><span class="s1">mainloop</span><span class="s2">()</span>
+</pre>
+</body>
+</html>

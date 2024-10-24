@@ -1,0 +1,118 @@
+<html>
+<head>
+<title>OptimizaciónGA.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #2aacb8;}
+.s5 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+OptimizaciónGA.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">numpy </span><span class="s0">as </span><span class="s1">np</span>
+<span class="s0">import </span><span class="s1">pandas </span><span class="s0">as </span><span class="s1">pd</span>
+<span class="s0">import </span><span class="s1">matplotlib</span><span class="s2">.</span><span class="s1">pyplot </span><span class="s0">as </span><span class="s1">plt</span>
+<span class="s0">from </span><span class="s1">scipy</span><span class="s2">.</span><span class="s1">integrate </span><span class="s0">import </span><span class="s1">odeint</span>
+<span class="s0">from </span><span class="s1">scipy</span><span class="s2">.</span><span class="s1">optimize </span><span class="s0">import </span><span class="s1">minimize</span>
+<span class="s0">from </span><span class="s1">sklearn</span><span class="s2">.</span><span class="s1">metrics </span><span class="s0">import </span><span class="s1">mean_squared_error</span>
+
+
+<span class="s3"># Función que simula el circuito RLC</span>
+<span class="s0">def </span><span class="s1">rlc_system</span><span class="s2">(</span><span class="s1">y</span><span class="s2">, </span><span class="s1">t</span><span class="s2">, </span><span class="s1">R</span><span class="s2">, </span><span class="s1">L</span><span class="s2">, </span><span class="s1">C</span><span class="s2">):</span>
+    <span class="s1">q</span><span class="s2">, </span><span class="s1">i </span><span class="s2">= </span><span class="s1">y  </span><span class="s3"># Carga y corriente</span>
+    <span class="s1">dydt </span><span class="s2">= [</span><span class="s1">i</span><span class="s2">, -</span><span class="s1">R </span><span class="s2">/ </span><span class="s1">L </span><span class="s2">* </span><span class="s1">i </span><span class="s2">- </span><span class="s1">q </span><span class="s2">/ (</span><span class="s1">L </span><span class="s2">* </span><span class="s1">C</span><span class="s2">)]  </span><span class="s3"># Ecuaciones diferenciales de RLC amortiguado</span>
+    <span class="s0">return </span><span class="s1">dydt</span>
+
+
+<span class="s3"># Función para simular el circuito RLC con parámetros dados</span>
+<span class="s0">def </span><span class="s1">simular_rlc</span><span class="s2">(</span><span class="s1">L</span><span class="s2">, </span><span class="s1">C</span><span class="s2">, </span><span class="s1">R</span><span class="s2">, </span><span class="s1">t_max</span><span class="s2">=</span><span class="s4">10</span><span class="s2">, </span><span class="s1">num_points</span><span class="s2">=</span><span class="s4">1000</span><span class="s2">):</span>
+    <span class="s1">t </span><span class="s2">= </span><span class="s1">np</span><span class="s2">.</span><span class="s1">linspace</span><span class="s2">(</span><span class="s4">0</span><span class="s2">, </span><span class="s1">t_max</span><span class="s2">, </span><span class="s1">num_points</span><span class="s2">)</span>
+    <span class="s1">y0 </span><span class="s2">= [</span><span class="s4">1</span><span class="s2">, </span><span class="s4">0</span><span class="s2">]  </span><span class="s3"># Condiciones iniciales: q(0) = 1, i(0) = 0</span>
+    <span class="s1">sol </span><span class="s2">= </span><span class="s1">odeint</span><span class="s2">(</span><span class="s1">rlc_system</span><span class="s2">, </span><span class="s1">y0</span><span class="s2">, </span><span class="s1">t</span><span class="s2">, </span><span class="s1">args</span><span class="s2">=(</span><span class="s1">R</span><span class="s2">, </span><span class="s1">L</span><span class="s2">, </span><span class="s1">C</span><span class="s2">))</span>
+    <span class="s1">q </span><span class="s2">= </span><span class="s1">sol</span><span class="s2">[:, </span><span class="s4">0</span><span class="s2">]  </span><span class="s3"># Carga (q)</span>
+    <span class="s1">i </span><span class="s2">= </span><span class="s1">sol</span><span class="s2">[:, </span><span class="s4">1</span><span class="s2">]  </span><span class="s3"># Corriente (i)</span>
+    <span class="s0">return </span><span class="s1">t</span><span class="s2">, </span><span class="s1">q</span><span class="s2">, </span><span class="s1">i</span>
+
+
+<span class="s3"># Función para calcular el factor de amortiguamiento zeta</span>
+<span class="s0">def </span><span class="s1">factor_amortiguamiento</span><span class="s2">(</span><span class="s1">R</span><span class="s2">, </span><span class="s1">L</span><span class="s2">, </span><span class="s1">C</span><span class="s2">):</span>
+    <span class="s0">return </span><span class="s1">R </span><span class="s2">/ (</span><span class="s4">2 </span><span class="s2">* </span><span class="s1">np</span><span class="s2">.</span><span class="s1">sqrt</span><span class="s2">(</span><span class="s1">L </span><span class="s2">/ </span><span class="s1">C</span><span class="s2">))</span>
+
+
+<span class="s3"># Función objetivo que minimiza el factor de amortiguamiento zeta</span>
+<span class="s0">def </span><span class="s1">funcion_objetivo</span><span class="s2">(</span><span class="s1">params</span><span class="s2">, </span><span class="s1">R</span><span class="s2">):</span>
+    <span class="s1">L</span><span class="s2">, </span><span class="s1">C </span><span class="s2">= </span><span class="s1">params</span>
+    <span class="s1">zeta </span><span class="s2">= </span><span class="s1">factor_amortiguamiento</span><span class="s2">(</span><span class="s1">R</span><span class="s2">, </span><span class="s1">L</span><span class="s2">, </span><span class="s1">C</span><span class="s2">)</span>
+    <span class="s0">return </span><span class="s1">zeta</span>
+
+
+<span class="s3"># Optimizar L y C para minimizar el factor de amortiguamiento zeta</span>
+<span class="s0">def </span><span class="s1">optimizar_rlc_minimizar_zeta</span><span class="s2">(</span><span class="s1">R</span><span class="s2">):</span>
+    <span class="s3"># Valores iniciales de L y C</span>
+    <span class="s1">L_inicial </span><span class="s2">= </span><span class="s4">1.0</span>
+    <span class="s1">C_inicial </span><span class="s2">= </span><span class="s4">0.01</span>
+
+    <span class="s3"># Definir los límites de los parámetros para la optimización</span>
+    <span class="s1">limites </span><span class="s2">= [(</span><span class="s4">0.01</span><span class="s2">, </span><span class="s4">10</span><span class="s2">), (</span><span class="s4">0.001</span><span class="s2">, </span><span class="s4">1</span><span class="s2">)]  </span><span class="s3"># Límites para L y C</span>
+
+    <span class="s3"># Ejecutar la optimización</span>
+    <span class="s1">resultado </span><span class="s2">= </span><span class="s1">minimize</span><span class="s2">(</span><span class="s1">funcion_objetivo</span><span class="s2">, [</span><span class="s1">L_inicial</span><span class="s2">, </span><span class="s1">C_inicial</span><span class="s2">], </span><span class="s1">args</span><span class="s2">=(</span><span class="s1">R</span><span class="s2">,), </span><span class="s1">bounds</span><span class="s2">=</span><span class="s1">limites</span><span class="s2">)</span>
+
+    <span class="s3"># Parámetros optimizados</span>
+    <span class="s1">L_opt</span><span class="s2">, </span><span class="s1">C_opt </span><span class="s2">= </span><span class="s1">resultado</span><span class="s2">.</span><span class="s1">x</span>
+    <span class="s0">return </span><span class="s1">L_opt</span><span class="s2">, </span><span class="s1">C_opt</span>
+
+
+<span class="s3"># Función principal para registro de datos y optimización</span>
+<span class="s0">def </span><span class="s1">main</span><span class="s2">():</span>
+    <span class="s3"># Registro de valores por parte del usuario</span>
+    <span class="s1">R_usuario </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">input</span><span class="s2">(</span><span class="s5">&quot;Ingresa el valor de la resistencia R (Ohms): &quot;</span><span class="s2">))</span>
+    <span class="s1">t_max </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">input</span><span class="s2">(</span><span class="s5">&quot;Ingresa el tiempo máximo de simulación (s): &quot;</span><span class="s2">))</span>
+    <span class="s1">num_points </span><span class="s2">= </span><span class="s1">int</span><span class="s2">(</span><span class="s1">input</span><span class="s2">(</span><span class="s5">&quot;Ingresa el número de puntos de simulación: &quot;</span><span class="s2">))</span>
+
+    <span class="s3"># Simular el circuito con los valores iniciales ingresados por el usuario</span>
+    <span class="s1">L_usuario </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">input</span><span class="s2">(</span><span class="s5">&quot;Ingresa el valor de la inductancia L (Henrios): &quot;</span><span class="s2">))</span>
+    <span class="s1">C_usuario </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">input</span><span class="s2">(</span><span class="s5">&quot;Ingresa el valor de la capacitancia C (Faradios): &quot;</span><span class="s2">))</span>
+
+    <span class="s1">t_usuario</span><span class="s2">, </span><span class="s1">q_usuario</span><span class="s2">, </span><span class="s1">i_usuario </span><span class="s2">= </span><span class="s1">simular_rlc</span><span class="s2">(</span><span class="s1">L_usuario</span><span class="s2">, </span><span class="s1">C_usuario</span><span class="s2">, </span><span class="s1">R_usuario</span><span class="s2">, </span><span class="s1">t_max</span><span class="s2">=</span><span class="s1">t_max</span><span class="s2">, </span><span class="s1">num_points</span><span class="s2">=</span><span class="s1">num_points</span><span class="s2">)</span>
+
+    <span class="s3"># Optimizar los valores de L y C para minimizar el factor de amortiguamiento</span>
+    <span class="s1">L_opt</span><span class="s2">, </span><span class="s1">C_opt </span><span class="s2">= </span><span class="s1">optimizar_rlc_minimizar_zeta</span><span class="s2">(</span><span class="s1">R_usuario</span><span class="s2">)</span>
+
+    <span class="s1">print</span><span class="s2">(</span><span class="s5">f&quot;Parámetros optimizados para minimizar el factor de amortiguamiento: L = </span><span class="s0">{</span><span class="s1">L_opt</span><span class="s0">:</span><span class="s5">.4f</span><span class="s0">} </span><span class="s5">H, C = </span><span class="s0">{</span><span class="s1">C_opt</span><span class="s0">:</span><span class="s5">.4f</span><span class="s0">} </span><span class="s5">F&quot;</span><span class="s2">)</span>
+
+    <span class="s3"># Simular el circuito con los parámetros optimizados</span>
+    <span class="s1">t_opt</span><span class="s2">, </span><span class="s1">q_opt</span><span class="s2">, </span><span class="s1">i_opt </span><span class="s2">= </span><span class="s1">simular_rlc</span><span class="s2">(</span><span class="s1">L_opt</span><span class="s2">, </span><span class="s1">C_opt</span><span class="s2">, </span><span class="s1">R_usuario</span><span class="s2">, </span><span class="s1">t_max</span><span class="s2">=</span><span class="s1">t_max</span><span class="s2">, </span><span class="s1">num_points</span><span class="s2">=</span><span class="s1">num_points</span><span class="s2">)</span>
+
+    <span class="s3"># Graficar los resultados</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">figure</span><span class="s2">(</span><span class="s1">figsize</span><span class="s2">=(</span><span class="s4">10</span><span class="s2">, </span><span class="s4">6</span><span class="s2">))</span>
+
+    <span class="s3"># Gráfica de la carga y corriente ingresada por el usuario</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">plot</span><span class="s2">(</span><span class="s1">t_usuario</span><span class="s2">, </span><span class="s1">q_usuario</span><span class="s2">, </span><span class="s1">label</span><span class="s2">=</span><span class="s5">'Carga Usuario (q)'</span><span class="s2">, </span><span class="s1">color</span><span class="s2">=</span><span class="s5">'blue'</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">plot</span><span class="s2">(</span><span class="s1">t_usuario</span><span class="s2">, </span><span class="s1">i_usuario</span><span class="s2">, </span><span class="s1">label</span><span class="s2">=</span><span class="s5">'Corriente Usuario (i)'</span><span class="s2">, </span><span class="s1">color</span><span class="s2">=</span><span class="s5">'green'</span><span class="s2">)</span>
+
+    <span class="s3"># Gráfica de la carga y corriente optimizadas</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">plot</span><span class="s2">(</span><span class="s1">t_opt</span><span class="s2">, </span><span class="s1">q_opt</span><span class="s2">, </span><span class="s1">label</span><span class="s2">=</span><span class="s5">'Carga Optimizada (q)'</span><span class="s2">, </span><span class="s1">color</span><span class="s2">=</span><span class="s5">'red'</span><span class="s2">, </span><span class="s1">linestyle</span><span class="s2">=</span><span class="s5">'--'</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">plot</span><span class="s2">(</span><span class="s1">t_opt</span><span class="s2">, </span><span class="s1">i_opt</span><span class="s2">, </span><span class="s1">label</span><span class="s2">=</span><span class="s5">'Corriente Optimizada (i)'</span><span class="s2">, </span><span class="s1">color</span><span class="s2">=</span><span class="s5">'orange'</span><span class="s2">, </span><span class="s1">linestyle</span><span class="s2">=</span><span class="s5">'--'</span><span class="s2">)</span>
+
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">title</span><span class="s2">(</span><span class="s5">'Optimización del Factor de Amortiguamiento en un Circuito RLC Amortiguado'</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">xlabel</span><span class="s2">(</span><span class="s5">'Tiempo (s)'</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">ylabel</span><span class="s2">(</span><span class="s5">'Magnitud'</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">legend</span><span class="s2">()</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s0">True</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">show</span><span class="s2">()</span>
+
+
+<span class="s0">if </span><span class="s1">__name__ </span><span class="s2">== </span><span class="s5">&quot;__main__&quot;</span><span class="s2">:</span>
+    <span class="s1">main</span><span class="s2">()</span>
+</pre>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<html>
+<head>
+<title>CodEntreAi.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #6aab73;}
+.s5 { color: #2aacb8;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+CodEntreAi.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">pandas </span><span class="s0">as </span><span class="s1">pd</span>
+<span class="s0">from </span><span class="s1">sklearn</span><span class="s2">.</span><span class="s1">model_selection </span><span class="s0">import </span><span class="s1">train_test_split</span>
+<span class="s0">from </span><span class="s1">tensorflow</span><span class="s2">.</span><span class="s1">keras</span><span class="s2">.</span><span class="s1">models </span><span class="s0">import </span><span class="s1">Sequential</span>
+<span class="s0">from </span><span class="s1">tensorflow</span><span class="s2">.</span><span class="s1">keras</span><span class="s2">.</span><span class="s1">layers </span><span class="s0">import </span><span class="s1">Dense</span>
+
+<span class="s3"># Cargar los datos del archivo CSV</span>
+<span class="s1">df </span><span class="s2">= </span><span class="s1">pd</span><span class="s2">.</span><span class="s1">read_csv</span><span class="s2">(</span><span class="s4">&quot;rlc_data.csv&quot;</span><span class="s2">)</span>
+
+<span class="s3"># Separar las características (R, L, C, Time) y las etiquetas (Voltage)</span>
+<span class="s1">X </span><span class="s2">= </span><span class="s1">df</span><span class="s2">[[</span><span class="s4">'R'</span><span class="s2">, </span><span class="s4">'L'</span><span class="s2">, </span><span class="s4">'C'</span><span class="s2">, </span><span class="s4">'Time'</span><span class="s2">]].</span><span class="s1">values</span>
+<span class="s1">y </span><span class="s2">= </span><span class="s1">df</span><span class="s2">[</span><span class="s4">'Voltage'</span><span class="s2">].</span><span class="s1">values</span>
+
+<span class="s3"># Dividir los datos en entrenamiento y prueba</span>
+<span class="s1">X_train</span><span class="s2">, </span><span class="s1">X_test</span><span class="s2">, </span><span class="s1">y_train</span><span class="s2">, </span><span class="s1">y_test </span><span class="s2">= </span><span class="s1">train_test_split</span><span class="s2">(</span><span class="s1">X</span><span class="s2">, </span><span class="s1">y</span><span class="s2">, </span><span class="s1">test_size</span><span class="s2">=</span><span class="s5">0.2</span><span class="s2">, </span><span class="s1">random_state</span><span class="s2">=</span><span class="s5">42</span><span class="s2">)</span>
+
+<span class="s3"># Crear el modelo de red neuronal</span>
+<span class="s1">model </span><span class="s2">= </span><span class="s1">Sequential</span><span class="s2">([</span>
+    <span class="s1">Dense</span><span class="s2">(</span><span class="s5">64</span><span class="s2">, </span><span class="s1">input_dim</span><span class="s2">=</span><span class="s5">4</span><span class="s2">, </span><span class="s1">activation</span><span class="s2">=</span><span class="s4">'relu'</span><span class="s2">),</span>
+    <span class="s1">Dense</span><span class="s2">(</span><span class="s5">128</span><span class="s2">, </span><span class="s1">activation</span><span class="s2">=</span><span class="s4">'relu'</span><span class="s2">),</span>
+    <span class="s1">Dense</span><span class="s2">(</span><span class="s5">1</span><span class="s2">, </span><span class="s1">activation</span><span class="s2">=</span><span class="s4">'linear'</span><span class="s2">)  </span><span class="s3"># Salida para predecir el voltaje</span>
+<span class="s2">])</span>
+
+<span class="s3"># Compilar el modelo</span>
+<span class="s1">model</span><span class="s2">.</span><span class="s1">compile</span><span class="s2">(</span><span class="s1">optimizer</span><span class="s2">=</span><span class="s4">'adam'</span><span class="s2">, </span><span class="s1">loss</span><span class="s2">=</span><span class="s4">'mse'</span><span class="s2">)</span>
+
+<span class="s3"># Entrenar el modelo</span>
+<span class="s1">model</span><span class="s2">.</span><span class="s1">fit</span><span class="s2">(</span><span class="s1">X_train</span><span class="s2">, </span><span class="s1">y_train</span><span class="s2">, </span><span class="s1">epochs</span><span class="s2">=</span><span class="s5">50</span><span class="s2">, </span><span class="s1">batch_size</span><span class="s2">=</span><span class="s5">32</span><span class="s2">, </span><span class="s1">validation_split</span><span class="s2">=</span><span class="s5">0.2</span><span class="s2">)</span>
+
+<span class="s3"># Evaluar el modelo en los datos de prueba</span>
+<span class="s1">loss </span><span class="s2">= </span><span class="s1">model</span><span class="s2">.</span><span class="s1">evaluate</span><span class="s2">(</span><span class="s1">X_test</span><span class="s2">, </span><span class="s1">y_test</span><span class="s2">)</span>
+<span class="s1">print</span><span class="s2">(</span><span class="s4">f&quot;Error cuadrático medio en los datos de prueba: </span><span class="s0">{</span><span class="s1">loss</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s2">)</span>
+
+<span class="s3"># Hacer predicciones con el modelo entrenado</span>
+<span class="s1">predictions </span><span class="s2">= </span><span class="s1">model</span><span class="s2">.</span><span class="s1">predict</span><span class="s2">(</span><span class="s1">X_test</span><span class="s2">)</span>
+<span class="s3"># Imprimir las primeras 10 predicciones junto con los valores reales</span>
+<span class="s0">for </span><span class="s1">i </span><span class="s0">in </span><span class="s1">range</span><span class="s2">(</span><span class="s5">10</span><span class="s2">):</span>
+    <span class="s1">print</span><span class="s2">(</span><span class="s4">f&quot;Valor real: </span><span class="s0">{</span><span class="s1">y_test</span><span class="s2">[</span><span class="s1">i</span><span class="s2">]</span><span class="s0">}</span><span class="s4">, Predicción: </span><span class="s0">{</span><span class="s1">predictions</span><span class="s2">[</span><span class="s1">i</span><span class="s2">][</span><span class="s5">0</span><span class="s2">]</span><span class="s0">}</span><span class="s4">&quot;</span><span class="s2">)</span>
+</pre>
+</body>
+</html>

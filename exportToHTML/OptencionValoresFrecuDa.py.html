@@ -1,0 +1,99 @@
+<html>
+<head>
+<title>OptencionValoresFrecuDa.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #2aacb8;}
+.s5 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+OptencionValoresFrecuDa.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">numpy </span><span class="s0">as </span><span class="s1">np</span>
+<span class="s0">import </span><span class="s1">matplotlib</span><span class="s2">.</span><span class="s1">pyplot </span><span class="s0">as </span><span class="s1">plt</span>
+<span class="s0">from </span><span class="s1">scipy</span><span class="s2">.</span><span class="s1">optimize </span><span class="s0">import </span><span class="s1">minimize</span>
+
+
+<span class="s3"># Función para calcular la frecuencia de resonancia de un circuito RLC</span>
+<span class="s0">def </span><span class="s1">frecuencia_resonancia</span><span class="s2">(</span><span class="s1">L</span><span class="s2">, </span><span class="s1">C</span><span class="s2">):</span>
+    <span class="s0">return </span><span class="s4">1 </span><span class="s2">/ (</span><span class="s4">2 </span><span class="s2">* </span><span class="s1">np</span><span class="s2">.</span><span class="s1">pi </span><span class="s2">* </span><span class="s1">np</span><span class="s2">.</span><span class="s1">sqrt</span><span class="s2">(</span><span class="s1">L </span><span class="s2">* </span><span class="s1">C</span><span class="s2">))</span>
+
+
+<span class="s3"># Función objetivo que mide la diferencia entre la frecuencia objetivo y la calculada</span>
+<span class="s0">def </span><span class="s1">funcion_objetivo</span><span class="s2">(</span><span class="s1">params</span><span class="s2">, </span><span class="s1">f_objetivo</span><span class="s2">):</span>
+    <span class="s1">L</span><span class="s2">, </span><span class="s1">C </span><span class="s2">= </span><span class="s1">params</span>
+    <span class="s1">f_calculada </span><span class="s2">= </span><span class="s1">frecuencia_resonancia</span><span class="s2">(</span><span class="s1">L</span><span class="s2">, </span><span class="s1">C</span><span class="s2">)</span>
+    <span class="s1">error </span><span class="s2">= (</span><span class="s1">f_calculada </span><span class="s2">- </span><span class="s1">f_objetivo</span><span class="s2">) ** </span><span class="s4">2  </span><span class="s3"># Error cuadrático</span>
+    <span class="s0">return </span><span class="s1">error</span>
+
+
+<span class="s3"># Optimización para obtener los valores de L y C</span>
+<span class="s0">def </span><span class="s1">optimizar_circuito</span><span class="s2">(</span><span class="s1">f_objetivo</span><span class="s2">, </span><span class="s1">L_inicial</span><span class="s2">, </span><span class="s1">C_inicial</span><span class="s2">):</span>
+    <span class="s3"># Definir los límites de los parámetros para la optimización</span>
+    <span class="s1">limites </span><span class="s2">= [(</span><span class="s4">0.01</span><span class="s2">, </span><span class="s4">10</span><span class="s2">), (</span><span class="s4">0.001</span><span class="s2">, </span><span class="s4">1</span><span class="s2">)]  </span><span class="s3"># Límites para L y C</span>
+
+    <span class="s3"># Ejecutar la optimización</span>
+    <span class="s1">resultado </span><span class="s2">= </span><span class="s1">minimize</span><span class="s2">(</span><span class="s1">funcion_objetivo</span><span class="s2">, [</span><span class="s1">L_inicial</span><span class="s2">, </span><span class="s1">C_inicial</span><span class="s2">], </span><span class="s1">args</span><span class="s2">=(</span><span class="s1">f_objetivo</span><span class="s2">,), </span><span class="s1">bounds</span><span class="s2">=</span><span class="s1">limites</span><span class="s2">)</span>
+
+    <span class="s3"># Parámetros optimizados</span>
+    <span class="s1">L_opt</span><span class="s2">, </span><span class="s1">C_opt </span><span class="s2">= </span><span class="s1">resultado</span><span class="s2">.</span><span class="s1">x</span>
+    <span class="s0">return </span><span class="s1">L_opt</span><span class="s2">, </span><span class="s1">C_opt</span>
+
+
+<span class="s3"># Función principal para el registro de datos y optimización</span>
+<span class="s0">def </span><span class="s1">main</span><span class="s2">():</span>
+    <span class="s3"># Registro de la frecuencia objetivo por parte del usuario</span>
+    <span class="s1">f_objetivo </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">input</span><span class="s2">(</span><span class="s5">&quot;Ingresa la frecuencia de resonancia deseada (Hz): &quot;</span><span class="s2">))</span>
+
+    <span class="s3"># Registro de valores iniciales de L y C</span>
+    <span class="s1">L_inicial </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">input</span><span class="s2">(</span><span class="s5">&quot;Ingresa el valor inicial de la inductancia L (Henrios): &quot;</span><span class="s2">))</span>
+    <span class="s1">C_inicial </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">input</span><span class="s2">(</span><span class="s5">&quot;Ingresa el valor inicial de la capacitancia C (Faradios): &quot;</span><span class="s2">))</span>
+
+    <span class="s3"># Optimizar los valores de L y C para alcanzar la frecuencia deseada</span>
+    <span class="s1">L_opt</span><span class="s2">, </span><span class="s1">C_opt </span><span class="s2">= </span><span class="s1">optimizar_circuito</span><span class="s2">(</span><span class="s1">f_objetivo</span><span class="s2">, </span><span class="s1">L_inicial</span><span class="s2">, </span><span class="s1">C_inicial</span><span class="s2">)</span>
+
+    <span class="s1">print</span><span class="s2">(</span><span class="s5">f&quot;Parámetros optimizados para alcanzar la frecuencia de resonancia de </span><span class="s0">{</span><span class="s1">f_objetivo</span><span class="s0">} </span><span class="s5">Hz:&quot;</span><span class="s2">)</span>
+    <span class="s1">print</span><span class="s2">(</span><span class="s5">f&quot;Inductancia (L): </span><span class="s0">{</span><span class="s1">L_opt</span><span class="s0">:</span><span class="s5">.6f</span><span class="s0">} </span><span class="s5">H&quot;</span><span class="s2">)</span>
+    <span class="s1">print</span><span class="s2">(</span><span class="s5">f&quot;Capacitancia (C): </span><span class="s0">{</span><span class="s1">C_opt</span><span class="s0">:</span><span class="s5">.6f</span><span class="s0">} </span><span class="s5">F&quot;</span><span class="s2">)</span>
+
+    <span class="s3"># Calcular la frecuencia obtenida con los parámetros optimizados</span>
+    <span class="s1">f_obtenida </span><span class="s2">= </span><span class="s1">frecuencia_resonancia</span><span class="s2">(</span><span class="s1">L_opt</span><span class="s2">, </span><span class="s1">C_opt</span><span class="s2">)</span>
+    <span class="s1">print</span><span class="s2">(</span><span class="s5">f&quot;Frecuencia obtenida con los parámetros optimizados: </span><span class="s0">{</span><span class="s1">f_obtenida</span><span class="s0">:</span><span class="s5">.6f</span><span class="s0">} </span><span class="s5">Hz&quot;</span><span class="s2">)</span>
+
+    <span class="s3"># Graficar los resultados</span>
+    <span class="s1">etiquetas </span><span class="s2">= [</span><span class="s5">'Inductancia (L)'</span><span class="s2">, </span><span class="s5">'Capacitancia (C)'</span><span class="s2">, </span><span class="s5">'Frecuencia (f)'</span><span class="s2">]</span>
+    <span class="s1">valores_usuario </span><span class="s2">= [</span><span class="s1">L_inicial</span><span class="s2">, </span><span class="s1">C_inicial</span><span class="s2">, </span><span class="s1">f_objetivo</span><span class="s2">]</span>
+    <span class="s1">valores_optimizados </span><span class="s2">= [</span><span class="s1">L_opt</span><span class="s2">, </span><span class="s1">C_opt</span><span class="s2">, </span><span class="s1">f_obtenida</span><span class="s2">]</span>
+
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">figure</span><span class="s2">(</span><span class="s1">figsize</span><span class="s2">=(</span><span class="s4">10</span><span class="s2">, </span><span class="s4">6</span><span class="s2">))</span>
+
+    <span class="s3"># Graficar los valores iniciales y optimizados</span>
+    <span class="s1">bar_width </span><span class="s2">= </span><span class="s4">0.35</span>
+    <span class="s1">indices </span><span class="s2">= </span><span class="s1">np</span><span class="s2">.</span><span class="s1">arange</span><span class="s2">(</span><span class="s1">len</span><span class="s2">(</span><span class="s1">etiquetas</span><span class="s2">))</span>
+
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">bar</span><span class="s2">(</span><span class="s1">indices</span><span class="s2">, </span><span class="s1">valores_usuario</span><span class="s2">, </span><span class="s1">bar_width</span><span class="s2">, </span><span class="s1">label</span><span class="s2">=</span><span class="s5">'Valores Iniciales'</span><span class="s2">, </span><span class="s1">color</span><span class="s2">=</span><span class="s5">'blue'</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">bar</span><span class="s2">(</span><span class="s1">indices </span><span class="s2">+ </span><span class="s1">bar_width</span><span class="s2">, </span><span class="s1">valores_optimizados</span><span class="s2">, </span><span class="s1">bar_width</span><span class="s2">, </span><span class="s1">label</span><span class="s2">=</span><span class="s5">'Valores Optimizados'</span><span class="s2">, </span><span class="s1">color</span><span class="s2">=</span><span class="s5">'green'</span><span class="s2">)</span>
+
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">xlabel</span><span class="s2">(</span><span class="s5">'Parámetros'</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">ylabel</span><span class="s2">(</span><span class="s5">'Valores'</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">title</span><span class="s2">(</span><span class="s5">'Comparación de los Parámetros Iniciales y Optimizados'</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">xticks</span><span class="s2">(</span><span class="s1">indices </span><span class="s2">+ </span><span class="s1">bar_width </span><span class="s2">/ </span><span class="s4">2</span><span class="s2">, </span><span class="s1">etiquetas</span><span class="s2">)</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">legend</span><span class="s2">()</span>
+
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">tight_layout</span><span class="s2">()</span>
+    <span class="s1">plt</span><span class="s2">.</span><span class="s1">show</span><span class="s2">()</span>
+
+
+<span class="s0">if </span><span class="s1">__name__ </span><span class="s2">== </span><span class="s5">&quot;__main__&quot;</span><span class="s2">:</span>
+    <span class="s1">main</span><span class="s2">()</span>
+</pre>
+</body>
+</html>

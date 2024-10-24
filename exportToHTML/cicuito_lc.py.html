@@ -1,0 +1,95 @@
+<html>
+<head>
+<title>cicuito_lc.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #2aacb8;}
+.s5 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+cicuito_lc.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">numpy </span><span class="s0">as </span><span class="s1">np</span>
+<span class="s0">import </span><span class="s1">matplotlib</span><span class="s2">.</span><span class="s1">pyplot </span><span class="s0">as </span><span class="s1">plt</span>
+<span class="s0">from </span><span class="s1">scipy</span><span class="s2">.</span><span class="s1">integrate </span><span class="s0">import </span><span class="s1">odeint</span>
+<span class="s0">import </span><span class="s1">tkinter </span><span class="s0">as </span><span class="s1">tk</span>
+<span class="s0">from </span><span class="s1">tkinter </span><span class="s0">import </span><span class="s1">messagebox</span>
+
+
+<span class="s3"># Función que describe el sistema LC</span>
+<span class="s0">def </span><span class="s1">circuito_lc</span><span class="s2">(</span><span class="s1">y</span><span class="s2">, </span><span class="s1">t</span><span class="s2">, </span><span class="s1">L</span><span class="s2">, </span><span class="s1">C</span><span class="s2">):</span>
+    <span class="s1">q</span><span class="s2">, </span><span class="s1">dqdt </span><span class="s2">= </span><span class="s1">y</span>
+    <span class="s1">dydt </span><span class="s2">= [</span><span class="s1">dqdt</span><span class="s2">, -</span><span class="s1">q </span><span class="s2">/ (</span><span class="s1">L </span><span class="s2">* </span><span class="s1">C</span><span class="s2">)]</span>
+    <span class="s0">return </span><span class="s1">dydt</span>
+
+
+<span class="s3"># Función para realizar la simulación y graficar</span>
+<span class="s0">def </span><span class="s1">simular_lc</span><span class="s2">():</span>
+    <span class="s0">try</span><span class="s2">:</span>
+        <span class="s3"># Obtenemos los valores ingresados por el usuario</span>
+        <span class="s1">L </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">entry_L</span><span class="s2">.</span><span class="s1">get</span><span class="s2">())</span>
+        <span class="s1">C </span><span class="s2">= </span><span class="s1">float</span><span class="s2">(</span><span class="s1">entry_C</span><span class="s2">.</span><span class="s1">get</span><span class="s2">())</span>
+
+        <span class="s3"># Parámetros iniciales</span>
+        <span class="s1">q0 </span><span class="s2">= </span><span class="s4">1.0  </span><span class="s3"># Carga inicial</span>
+        <span class="s1">dq0 </span><span class="s2">= </span><span class="s4">0.0  </span><span class="s3"># Corriente inicial</span>
+
+        <span class="s3"># Tiempo para la simulación</span>
+        <span class="s1">t </span><span class="s2">= </span><span class="s1">np</span><span class="s2">.</span><span class="s1">linspace</span><span class="s2">(</span><span class="s4">0</span><span class="s2">, </span><span class="s4">10</span><span class="s2">, </span><span class="s4">1000</span><span class="s2">)</span>
+
+        <span class="s3"># Solucionamos la ecuación diferencial</span>
+        <span class="s1">solucion </span><span class="s2">= </span><span class="s1">odeint</span><span class="s2">(</span><span class="s1">circuito_lc</span><span class="s2">, [</span><span class="s1">q0</span><span class="s2">, </span><span class="s1">dq0</span><span class="s2">], </span><span class="s1">t</span><span class="s2">, </span><span class="s1">args</span><span class="s2">=(</span><span class="s1">L</span><span class="s2">, </span><span class="s1">C</span><span class="s2">))</span>
+        <span class="s1">q </span><span class="s2">= </span><span class="s1">solucion</span><span class="s2">[:, </span><span class="s4">0</span><span class="s2">]  </span><span class="s3"># Carga</span>
+        <span class="s1">dqdt </span><span class="s2">= </span><span class="s1">solucion</span><span class="s2">[:, </span><span class="s4">1</span><span class="s2">]  </span><span class="s3"># Corriente (derivada de la carga)</span>
+
+        <span class="s3"># Calcular voltaje en el capacitor</span>
+        <span class="s1">V </span><span class="s2">= </span><span class="s1">q </span><span class="s2">/ </span><span class="s1">C</span>
+
+        <span class="s3"># Normalizamos la corriente para que tenga la misma amplitud que la carga</span>
+        <span class="s1">dqdt_normalized </span><span class="s2">= </span><span class="s1">dqdt </span><span class="s2">/ </span><span class="s1">np</span><span class="s2">.</span><span class="s1">max</span><span class="s2">(</span><span class="s1">np</span><span class="s2">.</span><span class="s1">abs</span><span class="s2">(</span><span class="s1">dqdt</span><span class="s2">)) * </span><span class="s1">np</span><span class="s2">.</span><span class="s1">max</span><span class="s2">(</span><span class="s1">np</span><span class="s2">.</span><span class="s1">abs</span><span class="s2">(</span><span class="s1">q</span><span class="s2">))</span>
+
+        <span class="s3"># Graficamos todas las curvas en una sola gráfica</span>
+        <span class="s1">plt</span><span class="s2">.</span><span class="s1">figure</span><span class="s2">(</span><span class="s1">figsize</span><span class="s2">=(</span><span class="s4">10</span><span class="s2">, </span><span class="s4">6</span><span class="s2">))</span>
+        <span class="s1">plt</span><span class="s2">.</span><span class="s1">plot</span><span class="s2">(</span><span class="s1">t</span><span class="s2">, </span><span class="s1">q</span><span class="s2">, </span><span class="s1">label</span><span class="s2">=</span><span class="s5">'Carga (q)'</span><span class="s2">, </span><span class="s1">color</span><span class="s2">=</span><span class="s5">'blue'</span><span class="s2">)</span>
+        <span class="s1">plt</span><span class="s2">.</span><span class="s1">plot</span><span class="s2">(</span><span class="s1">t</span><span class="s2">, </span><span class="s1">dqdt_normalized</span><span class="s2">, </span><span class="s1">label</span><span class="s2">=</span><span class="s5">'Corriente (dq/dt)'</span><span class="s2">, </span><span class="s1">color</span><span class="s2">=</span><span class="s5">'red'</span><span class="s2">)</span>
+        <span class="s1">plt</span><span class="s2">.</span><span class="s1">plot</span><span class="s2">(</span><span class="s1">t</span><span class="s2">, </span><span class="s1">V</span><span class="s2">, </span><span class="s1">label</span><span class="s2">=</span><span class="s5">'Voltaje (V)'</span><span class="s2">, </span><span class="s1">color</span><span class="s2">=</span><span class="s5">'green'</span><span class="s2">)</span>
+        <span class="s1">plt</span><span class="s2">.</span><span class="s1">title</span><span class="s2">(</span><span class="s5">f'Simulación Circuito LC</span><span class="s0">\n</span><span class="s5">L = </span><span class="s0">{</span><span class="s1">L</span><span class="s0">} </span><span class="s5">H, C = </span><span class="s0">{</span><span class="s1">C</span><span class="s0">} </span><span class="s5">F'</span><span class="s2">)</span>
+        <span class="s1">plt</span><span class="s2">.</span><span class="s1">xlabel</span><span class="s2">(</span><span class="s5">'Tiempo [s]'</span><span class="s2">)</span>
+        <span class="s1">plt</span><span class="s2">.</span><span class="s1">ylabel</span><span class="s2">(</span><span class="s5">'Amplitud'</span><span class="s2">)</span>
+        <span class="s1">plt</span><span class="s2">.</span><span class="s1">legend</span><span class="s2">()</span>
+        <span class="s1">plt</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s0">True</span><span class="s2">)</span>
+        <span class="s1">plt</span><span class="s2">.</span><span class="s1">show</span><span class="s2">()</span>
+    <span class="s0">except </span><span class="s1">ValueError</span><span class="s2">:</span>
+        <span class="s1">messagebox</span><span class="s2">.</span><span class="s1">showerror</span><span class="s2">(</span><span class="s5">&quot;Error&quot;</span><span class="s2">, </span><span class="s5">&quot;Por favor, ingrese valores numéricos válidos para L y C.&quot;</span><span class="s2">)</span>
+
+
+<span class="s3"># Crear la ventana principal</span>
+<span class="s1">root </span><span class="s2">= </span><span class="s1">tk</span><span class="s2">.</span><span class="s1">Tk</span><span class="s2">()</span>
+<span class="s1">root</span><span class="s2">.</span><span class="s1">title</span><span class="s2">(</span><span class="s5">&quot;Simulación Circuito LC&quot;</span><span class="s2">)</span>
+
+<span class="s3"># Etiquetas y entradas de texto</span>
+<span class="s1">tk</span><span class="s2">.</span><span class="s1">Label</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;Inductancia (L) [H]&quot;</span><span class="s2">).</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">row</span><span class="s2">=</span><span class="s4">0</span><span class="s2">)</span>
+<span class="s1">tk</span><span class="s2">.</span><span class="s1">Label</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;Capacitancia (C) [F]&quot;</span><span class="s2">).</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">row</span><span class="s2">=</span><span class="s4">1</span><span class="s2">)</span>
+
+<span class="s1">entry_L </span><span class="s2">= </span><span class="s1">tk</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">(</span><span class="s1">root</span><span class="s2">)</span>
+<span class="s1">entry_C </span><span class="s2">= </span><span class="s1">tk</span><span class="s2">.</span><span class="s1">Entry</span><span class="s2">(</span><span class="s1">root</span><span class="s2">)</span>
+
+<span class="s1">entry_L</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">row</span><span class="s2">=</span><span class="s4">0</span><span class="s2">, </span><span class="s1">column</span><span class="s2">=</span><span class="s4">1</span><span class="s2">)</span>
+<span class="s1">entry_C</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">row</span><span class="s2">=</span><span class="s4">1</span><span class="s2">, </span><span class="s1">column</span><span class="s2">=</span><span class="s4">1</span><span class="s2">)</span>
+
+<span class="s3"># Botón para iniciar la simulación</span>
+<span class="s1">boton_simular </span><span class="s2">= </span><span class="s1">tk</span><span class="s2">.</span><span class="s1">Button</span><span class="s2">(</span><span class="s1">root</span><span class="s2">, </span><span class="s1">text</span><span class="s2">=</span><span class="s5">&quot;Simular&quot;</span><span class="s2">, </span><span class="s1">command</span><span class="s2">=</span><span class="s1">simular_lc</span><span class="s2">)</span>
+<span class="s1">boton_simular</span><span class="s2">.</span><span class="s1">grid</span><span class="s2">(</span><span class="s1">row</span><span class="s2">=</span><span class="s4">2</span><span class="s2">, </span><span class="s1">columnspan</span><span class="s2">=</span><span class="s4">2</span><span class="s2">)</span>
+<span class="s3"># Iniciar la aplicación</span>
+<span class="s1">root</span><span class="s2">.</span><span class="s1">mainloop</span><span class="s2">()</span>
+</pre>
+</body>
+</html>
